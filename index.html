@@ -15,6 +15,7 @@
         <h1>スクリーンキャストデモ</h1>
         <button id="startBtn">録画開始</button>
         <button id="stopBtn" disabled>録画停止</button>
+        <label><input type="checkbox" id="micSwitch"/>音声を含む</label>
         <div>
             <video controls="true" id="videoElement"></video>
         </div>
@@ -27,26 +28,35 @@
 
             // 「録画開始」ボタンがクリックされたらストリームデータを取得する
             function startEvent(){
-                const streamData = [
-                    navigator.mediaDevices.getDisplayMedia({ video: true}),
-                    // 音声のストリームデータを取得する
-                    navigator.mediaDevices.getUserMedia({video: false, audio: true})
-                ]
+                const micSwitch = document.getElementById('micSwitch');
+                const mic = micSwitch.checked || false;
 
-                Promise.all(streamData)
-                .then(([video, audio]) => {
-                    const videoTrack = video.getVideoTracks()[0];
-                    const audioTrack = audio.getAudioTracks()[0];
+                if(mic){
+                    const streamData = [
+                        navigator.mediaDevices.getDisplayMedia({ video: true}),
+                        // 音声のストリームデータを取得する
+                        navigator.mediaDevices.getUserMedia({video: false, audio: true})
+                    ];
 
-                    recordSetting(new MediaStream([videoTrack, audioTrack]));
-                })
-                //エラー処理を追記、ブラウザを再読み込みする
-                .catch(error => window.location.reload())
+                    Promise.all(streamData)
+                    .then(([video, audio]) => {
+                        const videoTrack = video.getVideoTracks()[0];
+                        const audioTrack = audio.getAudioTracks()[0];
 
+                        recordSetting(new MediaStream([videoTrack, audioTrack]));
+                    })
+                    //エラー処理を追記、ブラウザを再読み込みする
+                    .catch(error => window.location.reload())
 
+                } else {
+                    navigator.mediaDevices.getDisplayMedia({video: true})
+                    .then(videoStream => recordSetting(videoStream))
+                    .catch(error => window.location.reload())
+                }
 
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
+                micSwitch.disabled = true;
             }
 
             let rec;
@@ -80,6 +90,7 @@
 
                 startBtn.disabled = false;
                 stopBtn.disabled = true;
+                micSwitch.disabled = false;
             }
 
         </script>
