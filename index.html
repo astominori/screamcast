@@ -35,8 +35,10 @@
 
                 Promise.all(streamData)
                 .then(([video, audio]) => {
-                    console.log(video.getVideoTracks());
-                    console.log(audio.getAudioTracks());
+                    const videoTrack = video.getVideoTracks()[0];
+                    const audioTrack = audio.getAudioTracks()[0];
+
+                    recordSetting(new MediaStream([videoTrack, audioTrack]));
                 })
                 //エラー処理を追記、ブラウザを再読み込みする
                 .catch(error => window.location.reload())
