@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <title>スクリーンキャストデモ</title>
+        <style>
+            #videoElement{
+                display: none;
+                width: 600px;
+                margin: 150px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>スクリーンキャストデモ</h1>
+        <button id="startBtn">録画開始</button>
+        <button id="stopBtn" disabled>録画停止</button>
+        <div>
+            <video controls="true" id="videoElement"></video>
+        </div>
+        <script>
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+
+            startBtn.addEventListener('click', startEvent);
+            stopBtn.addEventListener('click',stopEvent);
+
+            // 「録画開始」ボタンがクリックされたらストリームデータを取得する
+            function startEvent(){
+                const streamData = [
+                    navigator.mediaDevices.getDisplayMedia({ video: true}),
+                    // 音声のストリームデータを取得する
+                    navigator.mediaDevices.getUserMedia({video: false, audio: true})
+                ]
+
+                Promise.all(streamData)
+                .then(([video, audio]) => {
+                    console.log(video.getVideoTracks());
+                    console.log(audio.getAudioTracks());
+                })
+                //エラー処理を追記、ブラウザを再読み込みする
+                .catch(error => window.location.reload())
+
+
+
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+            }
+
+            let rec;
+
+            // ストリームデータを利用して画面録画を処理する
+            function recordSetting(stream){
+
+                //MediaRecorderにストリームデータとオプションを設定する
+                rec = new MediaRecorder(stream, {
+                    mineType: 'video/webm; codecs=vp8,opus'
+                });
+
+                // dataavailableイベント処理を追記
+                rec.ondataavailable = event => {
+                    const videoElement = document.getElementById('videoElement');
+                    const blobUrl = window.URL.createObjectURL(event.data);
+
+                    videoElement.src = blobUrl;
+
+                    videoElement.style.display = 'block';
+                }
+
+                //録画を開始する
+                rec.start();
+            }
+
+            // 「停止」ボタンがクリックされたら録画処理を停止する
+            function stopEvent(){
+                rec.stop();
+                rec.stream.getTracks().forEach(streamData => streamData.stop());
+
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+
+        </script>
+    </body>
+</html>
