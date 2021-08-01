@@ -5,9 +5,21 @@
         <title>スクリーンキャストデモ</title>
         <style>
             #videoElement{
-                display: none;
                 width: 600px;
-                margin: 150px 0;
+                margin: 15px 0;
+            }
+            #downloadBtn {
+                padding: 5px;
+                color: #000;
+                border: 4px solid #888;
+                border-radius: 15px;
+                text-decoration: none;
+            }
+            #downloadBtn:hover{
+                color: #fff;
+                border: 4px solid #333;
+                background-color: #333;
+                cursor: pointer;
             }
         </style>
     </head>
@@ -16,8 +28,9 @@
         <button id="startBtn">録画開始</button>
         <button id="stopBtn" disabled>録画停止</button>
         <label><input type="checkbox" id="micSwitch"/>音声を含む</label>
-        <div>
-            <video controls="true" id="videoElement"></video>
+        <div id="result">
+            <video controls="true" id="videoElement"></video><br/>
+            <a id="downloadBtn">ダウンロード</a>
         </div>
         <script>
             const startBtn = document.getElementById('startBtn');
@@ -30,6 +43,9 @@
             function startEvent(){
                 const micSwitch = document.getElementById('micSwitch');
                 const mic = micSwitch.checked || false;
+
+                //録画開始時にプレビューを非表示
+                document.getElementById('result').style.display = 'none';
 
                 if(mic){
                     const streamData = [
@@ -73,10 +89,13 @@
                 rec.ondataavailable = event => {
                     const videoElement = document.getElementById('videoElement');
                     const blobUrl = window.URL.createObjectURL(event.data);
+                    const downloadBtn = document.getElementById('downloadBtn');
 
+                    downloadBtn.href = blobUrl;
+                    downloadBtn.download = Date.now() + 'webm';
                     videoElement.src = blobUrl;
 
-                    videoElement.style.display = 'block';
+                    document.getElementById('result').style.display = 'block';
                 }
 
                 //録画を開始する
